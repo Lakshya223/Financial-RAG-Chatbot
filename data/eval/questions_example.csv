@@ -2,4 +2,22 @@ question,expected_answer,tickers,period
 "What was Amazon's Q3 2025 revenue?","$158.9 billion","AMZN","Q3-2025"
 "What was Amazon's AWS revenue growth in Q3 2025?","AWS revenue grew 19% year-over-year","AMZN","Q3-2025"
 "What was Amazon's operating income in Q3 2025?","$17.4 billion","AMZN","Q3-2025"
+"What were Amazon's net sales in Q3 2025?","$180.2 billion","amzn","Q3-2025"
+"What was the year-over-year percentage increase in net sales reported for Q3 2025?","13%","amzn","Q3-2025"
+"What was the FX-neutral year-over-year net sales growth in Q3 2025?","12%","amzn","Q3-2025"
+"What is Amazon's investor relations website?","amazon.com/ir","amzn","Q3-2025"
+"What was Amazon's trailing twelve months operating cash flow at Q3 2025?","$130,691 million","amzn","Q3-2025"
+"What were North America net sales in Q3 2025?","$106,267 million","amzn","Q3-2025"
+"What were International net sales in Q3 2025?","$40,896 million","amzn","Q3-2025"
+"What was the favorable impact from year-over-year foreign exchange changes on Q3 2025 net sales?","$1.5 billion","amzn","Q3-2025"
+"What was North America operating income in Q3 2025?","$4,789 million","amzn","Q3-2025"
+"What was International operating income in Q3 2025?","$1,199 million","amzn","Q3-2025"
+"By how much did TTM operating cash flow increase from Q2 2025 to Q3 2025?","$9,554 million","amzn","Q3-2025"
+"What were North America's operating expenses in Q3 2025?","$101,478 million","amzn","Q3-2025"
+"In Q3 2025, by how much did North America's operating income exceed International's?","$3,590 million","amzn","Q3-2025"
+"Calculate the operating margin for North America in Q3 2025 (operating income divided by net sales).","Approximately 4.5%","amzn","Q3-2025"
+"Calculate the operating margin for International in Q3 2025 (operating income divided by net sales).","Approximately 2.9%","amzn","Q3-2025"
+
+
+
 
