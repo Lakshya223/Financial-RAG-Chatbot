@@ -35,7 +35,9 @@ def chunk_document(
 
         for block in current_blocks:
             block_ids.append(block.block_id)
-            pages.append(block.page_number or 0)
+            # Only append actual page numbers (not None)
+            if block.page_number is not None:
+                pages.append(block.page_number)
             text_parts.append(block.text)
             if block.lines:
                 if line_start is None:
