@@ -125,6 +125,10 @@ def format_llm_response(raw_response: str) -> str:
     formatted = re.sub(r'\$\s+(\d)', r'$\1', formatted)
     formatted = re.sub(r'(\d+\.?\d*)\s*billion', r'\1 billion', formatted, flags=re.IGNORECASE)
     formatted = re.sub(r'(\d+\.?\d*)\s*million', r'\1 million', formatted, flags=re.IGNORECASE)
+
+    # Escape $ so Streamlit Markdown doesn't enter math mode (which changes digit font)
+    # Example: "$21.2 billion" -> "\$21.2 billion" for consistent rendering.
+    formatted = formatted.replace("$", r"\$")
     
     return formatted
 
