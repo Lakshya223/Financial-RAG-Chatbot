@@ -24,3 +24,6 @@ dist/
 # Project specific
 data/indexes/
 
+# Docs not meant for version control
+DEPLOYMENT.md
+
