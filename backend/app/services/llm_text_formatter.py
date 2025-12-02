@@ -18,13 +18,8 @@ def format_response_text(text: str) -> str:
     text = re.sub(r'(\d+\.?\d*)million', r'\1 million', text, flags=re.IGNORECASE)
     text = re.sub(r'(\d+\.?\d*)trillion', r'\1 trillion', text, flags=re.IGNORECASE)
     
-    # Step 2: Normalize spacing around large-number units (no currency formatting here)
-    text = re.sub(
-        r'(?<!\$)(\d+\.?\d*)\s+(billion|million|trillion)',
-        r'\1 \2',
-        text,
-        flags=re.IGNORECASE,
-    )
+    # Step 2: Fix "17.4billion" -> "$17.4 billion" (add dollar sign if missing)
+    text = re.sub(r'(?<!\$)(\d+\.?\d*)\s+(billion|million|trillion)', r'$\1 \2', text, flags=re.IGNORECASE)
     
     # Step 3: Fix missing spaces after periods (but not decimals)
     text = re.sub(r'([a-z])\.([A-Z])', r'\1. \2', text)
@@ -99,15 +94,35 @@ def format_llm_response(raw_response: str) -> str:
     text = text.replace('\u200c', '')  # Zero-width non-joiner
     text = text.replace('\u200d', '')  # Zero-width joiner
     
-    # Strip Unicode control characters
-    import unicodedata
-    text = ''.join(char for char in text 
-                   if unicodedata.category(char)[0] != 'C' or char in '\n\r\t')
+    # Normalise weird spaces that can cause visual glitches
+    text = text.replace('\u00a0', ' ')   # non‑breaking space
+    text = text.replace('\u202f', ' ')   # narrow no‑break space
+    text = text.replace('\u2009', ' ')   # thin space
     
-    # Apply formatting
+    # Strip Unicode control characters and normalise digits to plain ASCII
+    import unicodedata
+    cleaned_chars: list[str] = []
+    for char in text:
+        cat = unicodedata.category(char)
+        # Keep standard whitespace controls
+        if cat[0] == 'C' and char not in '\n\r\t':
+            continue
+        # Normalise any unicode decimal digit (e.g. full‑width １, Arabic‑Indic)
+        if char.isdigit() and not ('0' <= char <= '9'):
+            try:
+                cleaned_chars.append(str(unicodedata.digit(char)))
+                continue
+            except (TypeError, ValueError):
+                # Fallback: keep char as‑is if it can't be converted
+                pass
+        cleaned_chars.append(char)
+    text = ''.join(cleaned_chars)
+    
+    # Apply spacing / punctuation formatting
     formatted = format_response_text(text)
     
-    # Final financial number spacing cleanup
+    # Financial number formatting
+    formatted = re.sub(r'\$\s+(\d)', r'$\1', formatted)
     formatted = re.sub(r'(\d+\.?\d*)\s*billion', r'\1 billion', formatted, flags=re.IGNORECASE)
     formatted = re.sub(r'(\d+\.?\d*)\s*million', r'\1 million', formatted, flags=re.IGNORECASE)
     
