@@ -3,14 +3,18 @@ from __future__ import annotations
 import json
 from html import escape
 from pathlib import Path
-
+import os
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
-
+from dotenv import load_dotenv
 from vectorstore.chroma_store import ChromaVectorStore
 from ..dependencies import get_app_settings
 from ..services.highlight import build_search_phrase
+load_dotenv()
+env_value = os.environ.get("IS_USING_IMAGE_RUNTIME", "false").lower()
 
+# IS_USING_IMAGE_RUNTIME will be True only if the string value matches 'true', '1', 't', etc.
+IS_USING_IMAGE_RUNTIME = env_value in ('true', '1', 't', 'y', 'yes', 'on')
 
 router = APIRouter()
 
@@ -64,9 +68,22 @@ def get_document_file(
     local_path_value = str(chunk.metadata.get("local_path") or "")
     if not local_path_value:
         raise HTTPException(status_code=404, detail="Local file path is not available for this chunk.")
+    if IS_USING_IMAGE_RUNTIME:
+        BASE_DATA_PATH = "/var/task/data/raw/"
+        normalized = local_path_value.replace("\\", "/")
+        if "raw/" in normalized:
+            raw_path =  normalized.split("raw/", 1)[1]
+            ticker_from_path = raw_path.split("/", 1)[0]
+            print("ticker_from_path:", ticker_from_path)
+            file_name_from_path = raw_path.split("/", 1)[1]
+            raw_path = ticker_from_path.lower() + "/" + file_name_from_path
+            local_path_value = os.path.join(BASE_DATA_PATH, raw_path)
+        else:
+            raise HTTPException(status_code=404, detail="Local file path is not valid for IMAGE runtime."+str(local_path_value))
+
     file_path = _normalize_local_path(local_path_value)
     if not file_path.is_file():
-        raise HTTPException(status_code=404, detail="Document file not found on server.")
+        raise HTTPException(status_code=404, detail="Document file not found on server."+str(file_path))
     media_type = "application/pdf"
     suffix = file_path.suffix.lower()
     if suffix == ".html":
