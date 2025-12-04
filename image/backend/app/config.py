@@ -18,21 +18,32 @@ env_value = os.environ.get("IS_USING_IMAGE_RUNTIME", "false").lower()
 IS_USING_IMAGE_RUNTIME = env_value in ('true', '1', 't', 'y', 'yes', 'on')
 def copy_chroma_db_to_tmp(src_path: str, dst_path: str):
     """
-    Copies the ChromaDB from the host path to the image runtime path (/tmp).
-    This is needed because the image runtime has a read-only filesystem.
+    Copies the ChromaDB from the Docker image to the Lambda writable /tmp directory.
     """
-    dst_chroma_path = dst_path
-    print(f"DEBUG: dst_chroma_path = {dst_chroma_path}")
-    if not os.path.exists(dst_chroma_path):
-        os.makedirs(dst_chroma_path)
-    
-    tmp_contents = os.listdir(dst_chroma_path)
-    if len(tmp_contents) == 0:
-       print(f" 📁 Copying ChromaDB from '{src_path}' to runtime path '{dst_chroma_path}'...")
-       os.makedirs(dst_chroma_path, exist_ok=True)
-       shutil.copytree(src_path, dst_chroma_path, dirs_exist_ok=True)
-    else:
-       print(f" 📁 ChromaDB already exists at runtime path '{dst_chroma_path}'. Skipping copy.")
+    # Ensure Lambda-safe absolute path
+    if not dst_path.startswith("/tmp/"):
+        raise ValueError("dst_path must start with /tmp/, Lambda can only write to /tmp")
+
+    print(f"DEBUG: Copying ChromaDB → {dst_path}")
+
+    # Source inside the Docker image
+    if not os.path.exists(src_path):
+        raise FileNotFoundError(f"Source ChromaDB path does not exist: {src_path}")
+
+    # Create destination directory (all parents)
+    os.makedirs(dst_path, exist_ok=True)
+
+    # Check if destination already populated
+    if os.listdir(dst_path):
+        print(f"📁 ChromaDB already exists at {dst_path}, skipping copy.")
+        return
+
+    print(f"📁 Copying ChromaDB from '{src_path}' to '{dst_path}' ...")
+
+    # Copy entire tree safely
+    shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+
+    print("✅ ChromaDB copied successfully.")
 
 
 
@@ -46,20 +57,21 @@ class Settings(BaseModel):
     # OpenRouter settings for multi-model evaluation
     openrouter_api_key: str = ""
     openrouter_base_url: str = OPENROUTER_BASE_URL
-    data_dir: Path = Path("backend/data")
-    raw_dir: Path = Path("backend/data/raw")
-    processed_dir: Path = Path("backend/data/processed")
+
     if IS_USING_IMAGE_RUNTIME:
         print(" 🐳 Detected image runtime environment.")
         print("Forcing pysqlite3 replacement for compatibility. :: ", IS_USING_IMAGE_RUNTIME)
         __import__("pysqlite3")
         sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
-        index_dir: Path = Path("tmp/data/indexes")
-        chroma_persist_dir: Path = Path("tmp/data/indexes/chroma")
+        data_dir: Path = Path("/data")
+        raw_dir: Path = Path("/data/raw")
+        processed_dir: Path = Path("/data/processed")
+        index_dir: Path = Path("/tmp/data/indexes")
+        chroma_persist_dir: Path = Path("/tmp/data/indexes/chroma")
         # Copy ChromaDB to /tmp if needed
         copy_chroma_db_to_tmp(
             src_path="data/indexes/chroma/",
-            dst_path="tmp/data/indexes/chroma/",
+            dst_path="/tmp/data/indexes/chroma/",
         )
     else:
         index_dir: Path = Path("backend/data/indexes")

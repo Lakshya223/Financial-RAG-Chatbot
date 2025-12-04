@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import Settings
-
+from mangum import Mangum
 
 from .routes import chat, documents, health
 
@@ -10,6 +10,7 @@ app = FastAPI(
     description="LLM-based chatbot for answering questions about company financials with citations.",
     version="0.1.0",
 )
+handler = Mangum(app)
 
 # Add CORS middleware to allow PDF.js to load PDFs
 app.add_middleware(
@@ -31,4 +32,11 @@ app.include_router(health.router, prefix="/health", tags=["health"])
 app.include_router(chat.router, prefix="/chat", tags=["chat"])
 app.include_router(documents.router, tags=["documents"])
 
+import os
 
+@app.get("/debug/files")
+def list_files():
+    result = {}
+    for root, dirs, files in os.walk("/", topdown=True):
+        result[root] = {"dirs": dirs, "files": files}
+    return result
