@@ -12,7 +12,7 @@ sys.path.insert(0, str(project_root))
 
 import requests
 import streamlit as st
-from backend.app.services.llm_text_formatter import format_llm_response
+from image.backend.app.services.llm_text_formatter import format_llm_response
 
 
 API_BASE = os.environ.get("FIN_RAG_API_BASE", "http://localhost:8000")
