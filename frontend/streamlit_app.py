@@ -15,7 +15,7 @@ import streamlit as st
 from image.backend.app.services.llm_text_formatter import format_llm_response
 
 
-API_BASE = os.environ.get("FIN_RAG_API_BASE", "http://localhost:8000")
+API_BASE = os.environ.get("FIN_RAG_API_BASE", "https://sxbmk4nhzqumhwluhu5gj7eziy0xtxwq.lambda-url.us-east-1.on.aws/")
 
 def handle_question(question: str, top_k: int):
     """

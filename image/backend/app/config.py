@@ -59,6 +59,9 @@ class Settings(BaseModel):
     openrouter_base_url: str = OPENROUTER_BASE_URL
 
     if IS_USING_IMAGE_RUNTIME:
+        os.environ['HOME'] = '/tmp'
+        os.environ['HF_HOME'] = '/tmp'
+        os.environ['CHROMA_CACHE_DIR'] = '/tmp'
         print(" 🐳 Detected image runtime environment.")
         print("Forcing pysqlite3 replacement for compatibility. :: ", IS_USING_IMAGE_RUNTIME)
         __import__("pysqlite3")
